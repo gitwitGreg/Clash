@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 import { useUser } from '@clerk/nextjs'
-import { createDbUser } from '../helpers'
+import { getClashId, createDbUser } from '../helpers'
 
 const NavBar = () => {
 
@@ -13,21 +13,40 @@ const NavBar = () => {
 
   const user = useUser().user;
 
-  useEffect(() => {
+  const handleChange = (clashId: string) => {
 
-    if(user && clashId){
-      setTimeout(() => {
+    console.log('provided id: ', clashId);
 
-        if(clashId.length < 8){
-          setError('Please enter a valid id');
-          return;
-        }
-
-      },2000)
-      createDbUser({user, clashId});
+    if(clashId.length < 8){
+      setError('Please enter a valid id');
+      return;
     }
 
-  },[clashId])
+    setTimeout(() => {
+      createDbUser({user, clashId});
+    },2000);
+
+  }
+
+  const searchForclashID = async() => {
+
+    const dbClashId = await getClashId(user?.primaryEmailAddress?.emailAddress);
+
+    setClashId(dbClashId);
+    
+  }
+
+  useEffect(() => {
+    if(user && !clashId){
+
+      if(!user.primaryEmailAddress){
+        console.log('no email yet');
+        return;
+      }
+
+      searchForclashID();
+    }
+  },[user]);
 
   return (
     <div className='bg-black text-white p-8 w-full h-auto flex justify-between'>
@@ -43,8 +62,10 @@ const NavBar = () => {
         {!clashId && (
             <input 
             type='text'
+            placeholder='Player Id'
+            max={8}
             className='w-full p-2 rounded-lg text-black'
-            onChange={(e) => setClashId(e.target.value)}
+            onChange={(e) => handleChange(e.target.value)}
             />
         )}
 

@@ -2,6 +2,8 @@ import { User } from "@clerk/nextjs/server";
 
 
 export async function createDbUser(userObj : any){
+
+    console.log("strating function");
     
     try{
 
@@ -43,11 +45,17 @@ export async function createDbUser(userObj : any){
 
 }
 
-export async function checkForDbUser(email: string){
+export async function getClashId(email: string | undefined){
+
+    if(email === undefined){
+        return;
+    }
+
+    console.log('checking');
 
     try{
 
-        const response = await fetch('/api/checkDbUser', {
+        const response = await fetch('/api/getClashId', {
 
             method: 'POST',
 
@@ -63,11 +71,17 @@ export async function checkForDbUser(email: string){
 
             const error = await response.json();
 
-            console.log(error);
+            console.log(error.error);
 
-            throw new Error('error checking user. ', error);
+            throw new Error('Error finding clash id', error.error);
 
         }
+
+        const resObj = await response.json();
+
+        const clashId  = resObj.clashId;
+
+        return clashId;
 
     }catch(error){
 
